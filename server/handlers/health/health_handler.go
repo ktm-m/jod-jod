@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type HealthHandler interface {
+type IHealthHandler interface {
 	HealthCheck(c echo.Context) error
 }
 
@@ -15,7 +15,7 @@ type healthHandler struct {
 	cfg *config.Server
 }
 
-func NewHealthHandler(cfg *config.Server) HealthHandler {
+func NewHealthHandler(cfg *config.Server) IHealthHandler {
 	return &healthHandler{
 		cfg: cfg,
 	}

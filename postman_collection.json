@@ -1,0 +1,761 @@
+{
+	"info": {
+		"_postman_id": "7e541e34-53f5-433c-bf90-47b430e05d97",
+		"name": "jod-jod",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36200948"
+	},
+	"item": [
+		{
+			"name": "transaction",
+			"item": [
+				{
+					"name": "create transaction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgwMTMwMzYsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjEifQ.wVwpBDag8pY4FOv18jiJJhioVIO561un7qjIzqAEPCA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": 500,\n    \"category\": \"saving\",\n    \"transaction_type\": \"income\",\n    \"spender_id\": 19\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/save/manual",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"save",
+								"manual"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update transaction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5ODQwMTUsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjE5In0.AV-OkT5Gpxug2E3nWEYREKjgGuQ91JweLnGQC8IN3BA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": 1000,\n    \"category\": \"food\",\n    \"transaction_type\": \"expense\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/update/:txn-id",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"update",
+								":txn-id"
+							],
+							"variable": [
+								{
+									"key": "txn-id",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all transaction",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgwMTMwMzYsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjEifQ.wVwpBDag8pY4FOv18jiJJhioVIO561un7qjIzqAEPCA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/all",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get transaction detail",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5ODQ2MzAsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjE5In0.CANsR8eUZ718zhiWZb9-xYIHSSFJo3L2VA4qsis8524",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/detail/:spender-id?txn-type=income",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"detail",
+								":spender-id"
+							],
+							"query": [
+								{
+									"key": "txn-type",
+									"value": "income"
+								}
+							],
+							"variable": [
+								{
+									"key": "spender-id",
+									"value": "19"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get transaction summary",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgwMTMwMzYsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjEifQ.wVwpBDag8pY4FOv18jiJJhioVIO561un7qjIzqAEPCA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/summary/:spender-id?txn-type=income",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"summary",
+								":spender-id"
+							],
+							"query": [
+								{
+									"key": "txn-type",
+									"value": "income"
+								}
+							],
+							"variable": [
+								{
+									"key": "spender-id",
+									"value": "19"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get spender balance",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgwMTMwMzYsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjEifQ.wVwpBDag8pY4FOv18jiJJhioVIO561un7qjIzqAEPCA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/balance/:spender-id",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"balance",
+								":spender-id"
+							],
+							"variable": [
+								{
+									"key": "spender-id",
+									"value": "19"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get transaction by category",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5ODcyNTgsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjE5In0.mhsz8U3h-XXfcL9KSMGGGtav6Nz8UuFTjeEw41xsQ8Q",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/category/:spender-id?category=food&txn-type=expense",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"category",
+								":spender-id"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "food"
+								},
+								{
+									"key": "txn-type",
+									"value": "expense"
+								}
+							],
+							"variable": [
+								{
+									"key": "spender-id",
+									"value": "19"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get transaction by period",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5OTAyODAsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjE5In0.kWLANLHNUY7LHwWuYhhFiC-ydVmZpFaUHh53Ia5oUy8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/period/:spender-id?txn-type=expense&end-date=2024-06-11",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"period",
+								":spender-id"
+							],
+							"query": [
+								{
+									"key": "txn-type",
+									"value": "expense"
+								},
+								{
+									"key": "end-date",
+									"value": "2024-06-11"
+								}
+							],
+							"variable": [
+								{
+									"key": "spender-id",
+									"value": "19"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete transaction",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5OTEzNDAsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjE5In0.7FWlk3BB1JqfWIMRKFwKeMR1u_qN0UF0Mfn13RsiKGo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/transactions/delete/:spender-id/:txn-id",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"transactions",
+								"delete",
+								":spender-id",
+								":txn-id"
+							],
+							"variable": [
+								{
+									"key": "spender-id",
+									"value": "19"
+								},
+								{
+									"key": "txn-id",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstname\": \"john\",\n    \"lastname\": \"doe\",\n    \"email\": \"john.d@gmail.com\",\n    \"username\": \"john.d\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/users/create",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"jane.d\",\n    \"password\": \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/users/login",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "regen token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgwNjQ0ODIsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6InJlZnJlc2ggdG9rZW4iLCJVc2VySUQiOiIxOSJ9.zQ_vqTpZhJK9D7SeW_NCG8wpKhYrwC66Ijmq42fz5sY\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/users/regen-token",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"regen-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update user info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5ODA2NDgsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjE5In0.ALgjMTuCMJdA0ZhQzatzp9Zhd6o9D4jyhPiZb81LR8c",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstname\": \"jane\",\n    \"lastname\": \"doe\",\n    \"email\": \"jane.d@hotmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/users/update/info/:user-id",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"update",
+								"info",
+								":user-id"
+							],
+							"variable": [
+								{
+									"key": "user-id",
+									"value": "19"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update user password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5ODA2NDgsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjE5In0.ALgjMTuCMJdA0ZhQzatzp9Zhd6o9D4jyhPiZb81LR8c",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 19,\n    \"password\": \"newPassword\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local:8080}}/v1/users/update/password",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"update",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get users info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgwMTM0NTQsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjEifQ.6dSMNj2h7MVXZyF3jpH8_5ckZH-xDVvpXV2E91TCzls",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local:8080}}/v1/users/get",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc5ODIzNzQsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjE5In0.O_LVCcYt9Gt1NK60nvK8vNgM2lEuWjGWGIHArjRswbw",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local:8080}}/v1/users/get/:user-id",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"get",
+								":user-id"
+							],
+							"variable": [
+								{
+									"key": "user-id",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgwMTM0NTQsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjEifQ.6dSMNj2h7MVXZyF3jpH8_5ckZH-xDVvpXV2E91TCzls",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{local:8080}}/v1/users/delete/:user-id",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"delete",
+								":user-id"
+							],
+							"variable": [
+								{
+									"key": "user-id",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "health",
+			"item": [
+				{
+					"name": "health check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local:8080}}/v1/healths/health-check",
+							"host": [
+								"{{local:8080}}"
+							],
+							"path": [
+								"v1",
+								"healths",
+								"health-check"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -1,11 +1,14 @@
 package user_repository
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/Montheankul-K/jod-jod/domains/entities"
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"time"
 )
 
 type IUserRepository interface {
@@ -34,15 +37,15 @@ func NewUserRepository(db *gorm.DB, logger echo.Logger, redisClient *redis.Clien
 
 func (r *userRepository) GetUsers(pagination entities.Pagination) ([]entities.GetUserResponse, error) {
 	var res []entities.GetUserResponse
-	//key := fmt.Sprintf("get-all-users")
-	//userCache, err := r.redisClient.Get(context.Background(), key).Result()
-	//if err == nil {
-	//	err = json.Unmarshal([]byte(userCache), &res)
-	//	if err == nil {
-	//		return res, nil
-	//	}
-	//}
-	var err error
+	key := fmt.Sprintf("get-all-users")
+	userCache, err := r.redisClient.Get(context.Background(), key).Result()
+	if err == nil {
+		err = json.Unmarshal([]byte(userCache), &res)
+		if err == nil {
+			return res, nil
+		}
+	}
+
 	//offset := (pagination.PageItem - 1) * pagination.Page
 	//query := r.db.Model(&entities.Users{}).Offset(offset).Limit(pagination.PageItem)
 	query := r.db.Model(&entities.Users{})
@@ -52,32 +55,31 @@ func (r *userRepository) GetUsers(pagination entities.Pagination) ([]entities.Ge
 		return nil, err
 	}
 
-	//cache, err := json.Marshal(res)
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
-	//
-	//err = r.redisClient.Set(context.Background(), key, string(cache), time.Minute*1).Err()
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
+	cache, err := json.Marshal(res)
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
+
+	err = r.redisClient.Set(context.Background(), key, string(cache), time.Hour*1).Err()
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
 	fmt.Println(res)
 	return res, nil
 }
 
 func (r *userRepository) GetUser(userId uint) (*entities.GetUserResponse, error) {
 	var res entities.GetUserResponse
-	var err error
-	//key := fmt.Sprintf("get-user:%d", userId)
-	//userCache, err := r.redisClient.Get(context.Background(), key).Result()
-	//if err == nil {
-	//	err = json.Unmarshal([]byte(userCache), &res)
-	//	if err == nil {
-	//		return &res, nil
-	//	}
-	//}
+	key := fmt.Sprintf("get-user:%d", userId)
+	userCache, err := r.redisClient.Get(context.Background(), key).Result()
+	if err == nil {
+		err = json.Unmarshal([]byte(userCache), &res)
+		if err == nil {
+			return &res, nil
+		}
+	}
 
 	query := r.db.Model(&entities.Users{}).Where("id = ?", userId)
 	err = query.First(&res).Error
@@ -85,17 +87,17 @@ func (r *userRepository) GetUser(userId uint) (*entities.GetUserResponse, error)
 		return nil, err
 	}
 
-	//cache, err := json.Marshal(res)
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
-	//
-	//err = r.redisClient.Set(context.Background(), key, string(cache), time.Hour*1).Err()
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
+	cache, err := json.Marshal(res)
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
+
+	err = r.redisClient.Set(context.Background(), key, string(cache), time.Hour*1).Err()
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
 	return &res, nil
 }
 
@@ -120,22 +122,13 @@ func (r *userRepository) CreateUser(req entities.Users) (uint, error) {
 	}
 
 	userId := req.ID
-	//key := "get-all-users"
-	//exists, err := r.redisClient.Exists(context.Background(), key).Result()
-	//if err != nil {
-	//	tx.Rollback()
-	//	r.logger.Error(err)
-	//	return 0, err
-	//}
-	//
-	//if exists == 1 {
-	//	err = r.redisClient.Del(context.Background(), key).Err()
-	//	if err != nil {
-	//		tx.Rollback()
-	//		r.logger.Error(err)
-	//		return 0, err
-	//	}
-	//}
+	key := "get-all-users"
+	err = r.redisClient.Del(context.Background(), key).Err()
+	if err != nil {
+		tx.Rollback()
+		r.logger.Error(err)
+		return 0, err
+	}
 	return userId, tx.Commit().Error
 }
 
@@ -166,15 +159,15 @@ func (r *userRepository) UpdateUser(userId uint, req entities.Users) error {
 		return err
 	}
 
-	//keys := []string{"update-all-users", fmt.Sprintf("get-user:%d", userId)}
-	//for _, key := range keys {
-	//	err := r.redisClient.Del(context.Background(), key).Err()
-	//	if err != nil {
-	//		tx.Rollback()
-	//		r.logger.Error(err)
-	//		return err
-	//	}
-	//}
+	keys := []string{"get-all-users", fmt.Sprintf("get-user:%d", userId)}
+	for _, key := range keys {
+		err := r.redisClient.Del(context.Background(), key).Err()
+		if err != nil {
+			tx.Rollback()
+			r.logger.Error(err)
+			return err
+		}
+	}
 	return tx.Commit().Error
 }
 
@@ -205,14 +198,14 @@ func (r *userRepository) DeleteUser(userId uint) error {
 		return err
 	}
 
-	//keys := []string{"update-all-users", fmt.Sprintf("get-user:%d", userId)}
-	//for _, key := range keys {
-	//	err := r.redisClient.Del(context.Background(), key).Err()
-	//	if err != nil {
-	//		tx.Rollback()
-	//		r.logger.Error(err)
-	//		return err
-	//	}
-	//}
+	keys := []string{"get-all-users", fmt.Sprintf("get-user:%d", userId)}
+	for _, key := range keys {
+		err := r.redisClient.Del(context.Background(), key).Err()
+		if err != nil {
+			tx.Rollback()
+			r.logger.Error(err)
+			return err
+		}
+	}
 	return tx.Commit().Error
 }

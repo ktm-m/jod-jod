@@ -19,7 +19,7 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - ./data/redis:/data
-      - ./config/redis.conf:/redis.conf
-    command:
-      - redis-server /redis.conf
+      - redis_data:/data
+
+volumes:
+  redis_data:

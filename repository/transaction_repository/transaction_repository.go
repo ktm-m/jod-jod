@@ -1,6 +1,8 @@
 package transaction_repository
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/Montheankul-K/jod-jod/domains/entities"
 	"github.com/go-redis/redis/v8"
@@ -36,16 +38,15 @@ func NewTransactionRepository(db *gorm.DB, logger echo.Logger, redisClient *redi
 
 func (r *transactionRepository) GetAllTxn(filter entities.GetAllTxnFilter, pagination entities.Pagination) ([]entities.GetAllResponse, error) {
 	var res []entities.GetAllResponse
-	//var results []entities.Transaction
 	var err error
-	//key := fmt.Sprintf("get-all-expenses:%v", filter)
-	//txnCache, err := r.redisClient.Get(context.Background(), key).Result()
-	//if err == nil && txnCache != "" {
-	//	err = json.Unmarshal([]byte(txnCache), &res)
-	//	if err == nil {
-	//		return res, nil
-	//	}
-	//}
+	key := fmt.Sprintf("get-all-txn")
+	txnCache, err := r.redisClient.Get(context.Background(), key).Result()
+	if err == nil && txnCache != "" {
+		err = json.Unmarshal([]byte(txnCache), &res)
+		if err == nil {
+			return res, nil
+		}
+	}
 
 	query := r.db.Model(&entities.Transaction{})
 	//if filter.Date != nil {
@@ -68,42 +69,32 @@ func (r *transactionRepository) GetAllTxn(filter entities.GetAllTxnFilter, pagin
 		r.logger.Error(err)
 		return nil, err
 	}
-	//for _, value := range results {
-	//	result := &entities.GetAllResponse{
-	//		ID:              value.ID,
-	//		Date:            &value.Date,
-	//		Amount:          value.Amount,
-	//		Category:        value.Category,
-	//		TransactionType: value.TransactionType,
-	//	}
-	//	res = append(res, *result)
-	//}
 
-	//cache, err := json.Marshal(res)
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
-	//
-	//err = r.redisClient.Set(context.Background(), key, string(cache), time.Second*10).Err()
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
+	cache, err := json.Marshal(res)
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
+
+	err = r.redisClient.Set(context.Background(), key, string(cache), time.Hour*1).Err()
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
 	return res, nil
 }
 
 func (r *transactionRepository) GetAllBySpenderId(spenderId uint) ([]entities.GetAllResponse, error) {
 	var res []entities.GetAllResponse
 	var err error
-	//key := fmt.Sprintf("get-all-spender:%v", spenderId)
-	//txnCache, err := r.redisClient.Get(context.Background(), key).Result()
-	//if err == nil && txnCache != "" {
-	//	err = json.Unmarshal([]byte(txnCache), &res)
-	//	if err == nil {
-	//		return res, nil
-	//	}
-	//}
+	key := fmt.Sprintf("get-all-spender:%v", spenderId)
+	txnCache, err := r.redisClient.Get(context.Background(), key).Result()
+	if err == nil && txnCache != "" {
+		err = json.Unmarshal([]byte(txnCache), &res)
+		if err == nil {
+			return res, nil
+		}
+	}
 
 	query := r.db.Model(&entities.Transaction{}).Where("spender_id = ?", spenderId)
 	err = query.Find(&res).Error
@@ -112,31 +103,31 @@ func (r *transactionRepository) GetAllBySpenderId(spenderId uint) ([]entities.Ge
 		return nil, err
 	}
 
-	//cache, err := json.Marshal(res)
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
-	//
-	//err = r.redisClient.Set(context.Background(), key, string(cache), time.Hour*1).Err()
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
+	cache, err := json.Marshal(res)
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
+
+	err = r.redisClient.Set(context.Background(), key, string(cache), time.Hour*1).Err()
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
 	return res, nil
 }
 
 func (r *transactionRepository) GetByTxnType(req entities.GetByTxnTypeRequest) ([]entities.GetAllByTxnTypeResponse, error) {
 	var res []entities.GetAllByTxnTypeResponse
 	var err error
-	//key := fmt.Sprintf("get-by-txn-type:%v", req.SpenderId)
-	//txnCache, err := r.redisClient.Get(context.Background(), key).Result()
-	//if err == nil && txnCache != "" {
-	//	err = json.Unmarshal([]byte(txnCache), &res)
-	//	if err == nil {
-	//		return res, nil
-	//	}
-	//}
+	key := fmt.Sprintf("get-by-txn-type:%v", req.SpenderId)
+	txnCache, err := r.redisClient.Get(context.Background(), key).Result()
+	if err == nil && txnCache != "" {
+		err = json.Unmarshal([]byte(txnCache), &res)
+		if err == nil {
+			return res, nil
+		}
+	}
 
 	query := r.db.Model(&entities.Transaction{}).Where("spender_id = ? AND transaction_type = ?", req.SpenderId, req.TxnType)
 	err = query.Find(&res).Error
@@ -145,17 +136,17 @@ func (r *transactionRepository) GetByTxnType(req entities.GetByTxnTypeRequest) (
 		return nil, err
 	}
 
-	//cache, err := json.Marshal(res)
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
-	//
-	//err = r.redisClient.Set(context.Background(), key, string(cache), time.Hour*1).Err()
-	//if err != nil {
-	//	r.logger.Error(err)
-	//	return nil, err
-	//}
+	cache, err := json.Marshal(res)
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
+
+	err = r.redisClient.Set(context.Background(), key, string(cache), time.Hour*1).Err()
+	if err != nil {
+		r.logger.Error(err)
+		return nil, err
+	}
 	return res, nil
 }
 
@@ -209,18 +200,19 @@ func (r *transactionRepository) SaveTxn(req entities.Transaction) (uint, error) 
 	}
 
 	txnId := req.ID
-	//var keys []string
-	//keys = append(keys, fmt.Sprintf("get-all-spender:%v", req.SpenderId))
-	//keys = append(keys, fmt.Sprintf("get-by-txn-type:%v", req.SpenderId))
-	//
-	//for _, key := range keys {
-	//	err := r.redisClient.Del(context.Background(), key).Err()
-	//	if err != nil {
-	//		tx.Rollback()
-	//		r.logger.Error(err)
-	//		return 0, err
-	//	}
-	//}
+	var keys []string
+	keys = append(keys, "get-all-txn")
+	keys = append(keys, fmt.Sprintf("get-all-spender:%v", req.SpenderId))
+	keys = append(keys, fmt.Sprintf("get-by-txn-type:%v", req.SpenderId))
+
+	for _, key := range keys {
+		err := r.redisClient.Del(context.Background(), key).Err()
+		if err != nil {
+			tx.Rollback()
+			r.logger.Error(err)
+			return 0, err
+		}
+	}
 	return txnId, tx.Commit().Error
 }
 
@@ -256,18 +248,19 @@ func (r *transactionRepository) UpdateTxn(txnId uint, req entities.Transaction) 
 		return err
 	}
 
-	//var keys []string
-	//keys = append(keys, fmt.Sprintf("get-all-spender:%v", req.SpenderId))
-	//keys = append(keys, fmt.Sprintf("get-by-txn-type:%v", req.SpenderId))
-	//
-	//for _, key := range keys {
-	//	err := r.redisClient.Del(context.Background(), key).Err()
-	//	if err != nil {
-	//		tx.Rollback()
-	//		r.logger.Error(err)
-	//		return err
-	//	}
-	//}
+	var keys []string
+	keys = append(keys, "get-all-txn")
+	keys = append(keys, fmt.Sprintf("get-all-spender:%v", req.SpenderId))
+	keys = append(keys, fmt.Sprintf("get-by-txn-type:%v", req.SpenderId))
+
+	for _, key := range keys {
+		err := r.redisClient.Del(context.Background(), key).Err()
+		if err != nil {
+			tx.Rollback()
+			r.logger.Error(err)
+			return err
+		}
+	}
 	return tx.Commit().Error
 }
 
@@ -279,18 +272,19 @@ func (r *transactionRepository) DeleteTxn(spenderId uint, txnId uint) error {
 		return err
 	}
 
-	//var keys []string
-	//keys = append(keys, fmt.Sprintf("get-all-spender:%v", spenderId))
-	//keys = append(keys, fmt.Sprintf("get-by-txn-type:%v", spenderId))
-	//
-	//for _, key := range keys {
-	//	err := r.redisClient.Del(context.Background(), key).Err()
-	//	if err != nil {
-	//		tx.Rollback()
-	//		r.logger.Error(err)
-	//		return err
-	//	}
-	//}
+	var keys []string
+	keys = append(keys, "get-all-txn")
+	keys = append(keys, fmt.Sprintf("get-all-spender:%v", spenderId))
+	keys = append(keys, fmt.Sprintf("get-by-txn-type:%v", spenderId))
+
+	for _, key := range keys {
+		err := r.redisClient.Del(context.Background(), key).Err()
+		if err != nil {
+			tx.Rollback()
+			r.logger.Error(err)
+			return err
+		}
+	}
 
 	return tx.Commit().Error
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/Montheankul-K/jod-jod/server/handlers/user_handler"
 	"github.com/Montheankul-K/jod-jod/server/middlewares/transaction_middleware"
 	"github.com/Montheankul-K/jod-jod/server/middlewares/user_middleware"
+	"github.com/go-redis/redis/v8"
 )
 
 func (s *server) healthCheckRouter() {
@@ -21,9 +22,13 @@ func (s *server) healthCheckRouter() {
 
 func (s *server) userRouter() {
 	router := s.app.Group("/v1/users")
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
 	userMiddleware := user_middleware.NewUserMiddleware(s.cfg, s.app.Logger)
 
-	userRepository := user_repository.NewUserRepository(s.db.Connect(), s.app.Logger, s.redisClient)
+	userRepository := user_repository.NewUserRepository(s.db.Connect(), s.app.Logger, redisClient)
 	userService := user.NewUserService(userRepository, s.app.Logger)
 	userHandler := user_handler.NewUserHandler(userService, s.app.Logger)
 
@@ -39,10 +44,14 @@ func (s *server) userRouter() {
 
 func (s *server) transactionRouter() {
 	router := s.app.Group("/v1/transactions")
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
 	userMiddleware := user_middleware.NewUserMiddleware(s.cfg, s.app.Logger)
 	transactionMiddleware := transaction_middleware.NewTransactionMiddleware(s.app.Logger)
 
-	transactionRepository := transaction_repository.NewTransactionRepository(s.db.Connect(), s.app.Logger, s.redisClient)
+	transactionRepository := transaction_repository.NewTransactionRepository(s.db.Connect(), s.app.Logger, redisClient)
 	transactionService := transaction.NewTransactionService(transactionRepository, s.app.Logger)
 	transactionHandler := transaction_handler.NewTransactionHandler(transactionService, s.app.Logger)
 
