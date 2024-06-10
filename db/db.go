@@ -27,7 +27,7 @@ var (
 
 func InitDatabase(cfg *config.Database) DB {
 	once.Do(func() {
-		dsn := fmt.Sprintf("host=%s port=%d user_handler=%s dbname=%s password=%s sslmode=%s",
+		dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
 			cfg.Host, cfg.Port, cfg.Username, cfg.Database, cfg.Password, cfg.SSLMode)
 		dial := postgres.Open(dsn)
 

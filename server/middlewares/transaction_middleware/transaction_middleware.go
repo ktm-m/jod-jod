@@ -70,20 +70,23 @@ func (m *transactionMiddleware) SetPeriodFilter(next echo.HandlerFunc) echo.Hand
 				return c.JSON(http.StatusInternalServerError, echo.Map{
 					"message": "internal server error",
 				})
+			} else {
+				startDate = startDate.In(time.Local).Add(time.Hour * 0).Add(time.Minute * 0).Add(time.Second * 0)
 			}
 		}
 
 		endDateStr := c.QueryParam("end-date")
 		if endDateStr != "" {
-			endDate, err = time.Parse("2006-01-02", startDateStr)
+			endDate, err = time.Parse("2006-01-02", endDateStr)
 			if err != nil {
 				m.logger.Error(err)
 				return c.JSON(http.StatusInternalServerError, echo.Map{
 					"message": "internal server error",
 				})
+			} else {
+				endDate = endDate.In(time.Local).Add(time.Hour * 23).Add(time.Minute * 59).Add(time.Second * 59)
 			}
 		}
-
 		req := transaction.PeriodFilter{
 			StartDate: &startDate,
 			EndDate:   &endDate,

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Montheankul-K/jod-jod/config"
+	"github.com/Montheankul-K/jod-jod/domains/entities"
 	"github.com/Montheankul-K/jod-jod/repository/user_repository"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
@@ -19,7 +20,7 @@ type IUserService interface {
 	CreateUser(req Users) (uint, error)
 	Login(req LoginRequest) (*LoginResponse, error)
 	RegenToken(req RegenTokenRequest) (string, error)
-	UpdateInfo(req Users) error
+	UpdateInfo(userId uint, req Users) error
 	UpdatePassword(req UpdatePasswordRequest) error
 	DeleteUser(userId uint) error
 }
@@ -37,14 +38,28 @@ func NewUserService(userRepository user_repository.IUserRepository, logger echo.
 }
 
 func (s *userService) GetUsers(pagination Pagination) ([]GetUserResponse, error) {
-	result, err := s.userRepository.GetUsers(pagination)
+	newPagination := entities.Pagination{
+		PageItem: pagination.PageItem,
+		Page:     pagination.Page,
+	}
+	results, err := s.userRepository.GetUsers(newPagination)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}
 		return nil, errors.New("failed to get users")
 	}
-	return result, nil
+	var newResult []GetUserResponse
+	for _, value := range results {
+		result := GetUserResponse{
+			ID:        value.ID,
+			Firstname: value.Firstname,
+			Lastname:  value.Lastname,
+			Email:     value.Email,
+		}
+		newResult = append(newResult, result)
+	}
+	return newResult, nil
 }
 
 func (s *userService) GetUser(userId uint) (*GetUserResponse, error) {
@@ -55,7 +70,13 @@ func (s *userService) GetUser(userId uint) (*GetUserResponse, error) {
 		}
 		return nil, errors.New("failed to get user")
 	}
-	return result, nil
+	newResult := GetUserResponse{
+		ID:        result.ID,
+		Firstname: result.Firstname,
+		Lastname:  result.Lastname,
+		Email:     result.Email,
+	}
+	return &newResult, nil
 }
 
 func (s *userService) CreateUser(req Users) (uint, error) {
@@ -65,8 +86,14 @@ func (s *userService) CreateUser(req Users) (uint, error) {
 		return 0, errors.New("failed to hash password")
 	}
 
-	req.Password = string(hashPassword)
-	result, err := s.userRepository.CreateUser(req)
+	user := entities.Users{
+		Firstname: req.Firstname,
+		Lastname:  req.Lastname,
+		Email:     req.Email,
+		Username:  req.Username,
+		Password:  string(hashPassword),
+	}
+	result, err := s.userRepository.CreateUser(user)
 	if err != nil {
 		return 0, errors.New("failed to create user")
 	}
@@ -202,8 +229,13 @@ func validateToken(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
-func (s *userService) UpdateInfo(req Users) error {
-	err := s.userRepository.UpdateUser(req)
+func (s *userService) UpdateInfo(userId uint, req Users) error {
+	user := entities.Users{
+		Firstname: req.Firstname,
+		Lastname:  req.Lastname,
+		Email:     req.Email,
+	}
+	err := s.userRepository.UpdateUser(userId, user)
 	if err != nil {
 		return errors.New("failed to update user")
 	}

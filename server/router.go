@@ -29,11 +29,11 @@ func (s *server) userRouter() {
 
 	router.GET("/get", userHandler.GetUsers, userMiddleware.ValidateToken, userMiddleware.SetUserPagination)
 	router.GET("/get/:user-id", userHandler.GetUser, userMiddleware.ValidateToken)
-	router.POST("/create", userHandler.CreateUser, userMiddleware.ValidateToken)
+	router.POST("/create", userHandler.CreateUser)
 	router.POST("/login", userHandler.Login)
 	router.POST("/regen-token", userHandler.RegenToken)
-	router.PATCH("/update/info", userHandler.UpdateInfo, userMiddleware.ValidateToken)
-	router.PATCH("/update/password", userHandler.UpdatePassword, userMiddleware.ValidateToken)
+	router.PUT("/update/info/:user-id", userHandler.UpdateInfo, userMiddleware.ValidateToken)
+	router.PUT("/update/password", userHandler.UpdatePassword, userMiddleware.ValidateToken)
 	router.DELETE("/delete/:user-id", userHandler.DeleteUser, userMiddleware.ValidateToken)
 }
 
@@ -53,6 +53,6 @@ func (s *server) transactionRouter() {
 	router.GET("/period/:spender-id", transactionHandler.GetByPeriod, userMiddleware.ValidateToken, transactionMiddleware.SetGetByTxnTypeRequest, transactionMiddleware.SetPeriodFilter)
 	router.GET("/all", transactionHandler.GetAllTxn, userMiddleware.ValidateToken, transactionMiddleware.SetGetAllTxnFilter, transactionMiddleware.SetTxnPagination)
 	router.POST("/save/manual", transactionHandler.SaveByManual, userMiddleware.ValidateToken)
-	router.PATCH("/update", transactionHandler.Update, userMiddleware.ValidateToken)
+	router.PUT("/update/:txn-id", transactionHandler.Update, userMiddleware.ValidateToken)
 	router.DELETE("/delete/:spender-id/:txn-id", transactionHandler.Delete, userMiddleware.ValidateToken)
 }

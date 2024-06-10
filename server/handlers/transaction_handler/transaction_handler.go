@@ -57,7 +57,7 @@ func (h *transactionHandler) SaveByManual(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"message": err})
 	}
-	return c.JSON(http.StatusCreated, echo.Map{"spender_id": result})
+	return c.JSON(http.StatusCreated, echo.Map{"transaction_id": result})
 }
 
 func (h *transactionHandler) GetDetails(c echo.Context) error {
@@ -169,6 +169,22 @@ func (h *transactionHandler) GetByPeriod(c echo.Context) error {
 }
 
 func (h *transactionHandler) Update(c echo.Context) error {
+	txnIdStr := c.Param("txn-id")
+	if txnIdStr == "" {
+		h.logger.Error("txn-id is empty")
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "txn-id is required",
+		})
+	}
+
+	txnId, err := strconv.ParseUint(txnIdStr, 10, 64)
+	if err != nil {
+		h.logger.Error("txn-id is invalid")
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "txn-id is invalid",
+		})
+	}
+
 	var req transaction.Transaction
 	if err := c.Bind(&req); err != nil {
 		h.logger.Error(err)
@@ -178,7 +194,7 @@ func (h *transactionHandler) Update(c echo.Context) error {
 	}
 
 	validate := validator.New()
-	err := validate.Struct(&req)
+	err = validate.Struct(&req)
 	if err != nil {
 		h.logger.Error(err)
 		return c.JSON(http.StatusBadRequest, echo.Map{
@@ -186,11 +202,11 @@ func (h *transactionHandler) Update(c echo.Context) error {
 		})
 	}
 
-	err = h.transactionService.Update(req)
+	err = h.transactionService.Update(uint(txnId), req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"message": err})
 	}
-	return c.JSON(http.StatusOK, echo.Map{"message": fmt.Sprintf("update transaction with transaction id: %d success", req.ID)})
+	return c.JSON(http.StatusOK, echo.Map{"message": fmt.Sprintf("update transaction with transaction id: %d success", txnId)})
 }
 
 func (h *transactionHandler) Delete(c echo.Context) error {
@@ -217,7 +233,8 @@ func (h *transactionHandler) Delete(c echo.Context) error {
 		h.logger.Error("txn-id is invalid")
 		return c.JSON(http.StatusBadRequest, echo.Map{"message": "txn-id is invalid"})
 	}
-
+	fmt.Println(spenderId)
+	fmt.Println(txnId)
 	err = h.transactionService.Delete(uint(spenderId), uint(txnId))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"message": err})

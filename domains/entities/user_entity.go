@@ -1,4 +1,4 @@
-package user
+package entities
 
 import (
 	"github.com/golang-jwt/jwt"
@@ -17,17 +17,6 @@ type Users struct {
 type Claims struct {
 	jwt.StandardClaims
 	UserID string
-}
-
-type Pagination struct {
-	PageItem int `query:"page-item"`
-	Page     int `query:"page"`
-}
-
-type UpdateInfoRequest struct {
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
-	Email     string `json:"email"`
 }
 
 type UpdatePasswordRequest struct {

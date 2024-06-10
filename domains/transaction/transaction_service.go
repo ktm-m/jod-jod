@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"errors"
+	"github.com/Montheankul-K/jod-jod/domains/entities"
 	"github.com/Montheankul-K/jod-jod/repository/transaction_repository"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -16,7 +17,7 @@ type ITransactionService interface {
 	GetBalance(spenderId uint) (*GetBalanceResponse, error)
 	GetByCategory(req GetByCategoryRequest) ([]GetByCategoryResponse, error)
 	GetByPeriod(req GetByTxnTypeRequest, filter PeriodFilter) ([]GetAllByTxnTypeResponse, error)
-	Update(req Transaction) error
+	Update(txnId uint, req Transaction) error
 	Delete(spenderId, txnId uint) error
 	GetAllTxn(filter GetAllTxnFilter, pagination Pagination) ([]GetAllResponse, error)
 }
@@ -34,7 +35,16 @@ func NewTransactionService(transactionRepository transaction_repository.ITransac
 }
 
 func (s *transactionService) SaveByManual(req Transaction) (uint, error) {
-	result, err := s.transactionRepository.SaveTxn(req)
+	txn := entities.Transaction{
+		Date:            req.Date,
+		Amount:          req.Amount,
+		Category:        req.Category,
+		TransactionType: req.TransactionType,
+		Note:            req.Note,
+		ImageUrl:        req.ImageUrl,
+		SpenderId:       req.SpenderId,
+	}
+	result, err := s.transactionRepository.SaveTxn(txn)
 	if err != nil {
 		return 0, errors.New("failed to save transaction")
 	}
@@ -43,7 +53,11 @@ func (s *transactionService) SaveByManual(req Transaction) (uint, error) {
 }
 
 func (s *transactionService) GetDetails(req GetByTxnTypeRequest) ([]GetAllByTxnTypeResponse, error) {
-	results, err := s.transactionRepository.GetByTxnType(req)
+	txn := entities.GetByTxnTypeRequest{
+		SpenderId: req.SpenderId,
+		TxnType:   req.TxnType,
+	}
+	results, err := s.transactionRepository.GetByTxnType(txn)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
@@ -51,11 +65,27 @@ func (s *transactionService) GetDetails(req GetByTxnTypeRequest) ([]GetAllByTxnT
 		return nil, errors.New("failed to get transaction")
 	}
 	s.logger.Infof("get transaction details of spender id: %d success", req.SpenderId)
-	return results, nil
+
+	var newResults []GetAllByTxnTypeResponse
+	for _, value := range results {
+		result := &GetAllByTxnTypeResponse{
+			ID:       value.ID,
+			Date:     value.Date,
+			Amount:   value.Amount,
+			Category: value.Category,
+			ImageUrl: value.ImageUrl,
+		}
+		newResults = append(newResults, *result)
+	}
+	return newResults, nil
 }
 
 func (s *transactionService) GetSummary(req GetByTxnTypeRequest) (*GetSummaryResponse, error) {
-	results, err := s.transactionRepository.GetByTxnType(req)
+	txn := entities.GetByTxnTypeRequest{
+		SpenderId: req.SpenderId,
+		TxnType:   req.TxnType,
+	}
+	results, err := s.transactionRepository.GetByTxnType(txn)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
@@ -63,7 +93,19 @@ func (s *transactionService) GetSummary(req GetByTxnTypeRequest) (*GetSummaryRes
 		return nil, errors.New("failed to get transaction")
 	}
 
-	result, err := calculateSummary(results)
+	var newResults []GetAllByTxnTypeResponse
+	for _, value := range results {
+		result := &GetAllByTxnTypeResponse{
+			ID:       value.ID,
+			Date:     value.Date,
+			Amount:   value.Amount,
+			Category: value.Category,
+			ImageUrl: value.ImageUrl,
+		}
+		newResults = append(newResults, *result)
+	}
+
+	result, err := calculateSummary(newResults)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
@@ -125,7 +167,20 @@ func (s *transactionService) GetBalance(spenderId uint) (*GetBalanceResponse, er
 		return nil, errors.New("failed to get transaction")
 	}
 
-	result := calculateBalance(results)
+	var newResults []GetAllResponse
+	for _, value := range results {
+		result := &GetAllResponse{
+			ID:              value.ID,
+			Date:            value.Date,
+			Amount:          value.Amount,
+			Category:        value.Category,
+			ImageUrl:        value.ImageUrl,
+			TransactionType: value.TransactionType,
+		}
+		newResults = append(newResults, *result)
+	}
+
+	result := calculateBalance(newResults)
 	s.logger.Infof("get transaction balance of spender id: %d success", spenderId)
 	return result, nil
 }
@@ -150,7 +205,12 @@ func calculateBalance(allTxn []GetAllResponse) *GetBalanceResponse {
 }
 
 func (s *transactionService) GetByCategory(req GetByCategoryRequest) ([]GetByCategoryResponse, error) {
-	results, err := s.transactionRepository.GetByCategory(req)
+	txn := entities.GetByCategoryRequest{
+		SpenderId: req.SpenderId,
+		Category:  req.Category,
+		TxnType:   req.TxnType,
+	}
+	results, err := s.transactionRepository.GetByCategory(txn)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
@@ -158,11 +218,29 @@ func (s *transactionService) GetByCategory(req GetByCategoryRequest) ([]GetByCat
 		return nil, errors.New("failed to get transaction")
 	}
 	s.logger.Infof("get transaction by category of spender id: %d success", req.SpenderId)
-	return results, nil
+	var newResults []GetByCategoryResponse
+	for _, value := range results {
+		result := &GetByCategoryResponse{
+			ID:       value.ID,
+			Date:     value.Date,
+			Amount:   value.Amount,
+			ImageUrl: value.ImageUrl,
+		}
+		newResults = append(newResults, *result)
+	}
+	return newResults, nil
 }
 
 func (s *transactionService) GetByPeriod(req GetByTxnTypeRequest, filter PeriodFilter) ([]GetAllByTxnTypeResponse, error) {
-	results, err := s.transactionRepository.GetByPeriod(req, filter)
+	txn := entities.GetByTxnTypeRequest{
+		SpenderId: req.SpenderId,
+		TxnType:   req.TxnType,
+	}
+	newFilter := entities.PeriodFilter{
+		StartDate: filter.StartDate,
+		EndDate:   filter.EndDate,
+	}
+	results, err := s.transactionRepository.GetByPeriod(txn, newFilter)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
@@ -170,11 +248,28 @@ func (s *transactionService) GetByPeriod(req GetByTxnTypeRequest, filter PeriodF
 		return nil, errors.New("failed to get transaction")
 	}
 	s.logger.Infof("get transaction by period of spender id: %d success", req.SpenderId)
-	return results, nil
+	var newResults []GetAllByTxnTypeResponse
+	for _, value := range results {
+		result := &GetAllByTxnTypeResponse{
+			ID:       value.ID,
+			Date:     value.Date,
+			Amount:   value.Amount,
+			Category: value.Category,
+			ImageUrl: value.ImageUrl,
+		}
+		newResults = append(newResults, *result)
+	}
+	return newResults, nil
 }
 
-func (s *transactionService) Update(req Transaction) error {
-	err := s.transactionRepository.UpdateTxn(req)
+func (s *transactionService) Update(txnId uint, req Transaction) error {
+	txn := entities.Transaction{
+		Amount:          req.Amount,
+		Category:        req.Category,
+		TransactionType: req.TransactionType,
+		Note:            req.Note,
+	}
+	err := s.transactionRepository.UpdateTxn(txnId, txn)
 	if err != nil {
 		return errors.New("failed to update transaction")
 	}
@@ -192,7 +287,16 @@ func (s *transactionService) Delete(spenderId, txnId uint) error {
 }
 
 func (s *transactionService) GetAllTxn(filter GetAllTxnFilter, pagination Pagination) ([]GetAllResponse, error) {
-	results, err := s.transactionRepository.GetAllTxn(filter, pagination)
+	newFilter := entities.GetAllTxnFilter{
+		Date:     filter.Date,
+		Category: filter.Category,
+		TxnType:  filter.TxnType,
+	}
+	newPagination := entities.Pagination{
+		PageItem: pagination.PageItem,
+		Page:     pagination.Page,
+	}
+	results, err := s.transactionRepository.GetAllTxn(newFilter, newPagination)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
@@ -200,5 +304,17 @@ func (s *transactionService) GetAllTxn(filter GetAllTxnFilter, pagination Pagina
 		return nil, errors.New("failed to get transaction")
 	}
 	s.logger.Infof("get all transaction success")
-	return results, nil
+	var newResults []GetAllResponse
+	for _, value := range results {
+		result := &GetAllResponse{
+			ID:              value.ID,
+			Date:            value.Date,
+			Amount:          value.Amount,
+			Category:        value.Category,
+			ImageUrl:        value.ImageUrl,
+			TransactionType: value.TransactionType,
+		}
+		newResults = append(newResults, *result)
+	}
+	return newResults, nil
 }

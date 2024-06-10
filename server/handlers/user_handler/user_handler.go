@@ -2,6 +2,7 @@ package user_handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/Montheankul-K/jod-jod/domains/user"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -94,7 +95,7 @@ func (h *userHandler) CreateUser(c echo.Context) error {
 	if err != nil {
 		h.logger.Error(err)
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"message": err,
+			"message": errors.New("request body is invalid").Error(),
 		})
 	}
 
@@ -123,7 +124,7 @@ func (h *userHandler) Login(c echo.Context) error {
 	if err != nil {
 		h.logger.Error(err)
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"message": err,
+			"message": errors.New("request body is invalid").Error(),
 		})
 	}
 
@@ -176,8 +177,24 @@ func (h *userHandler) RegenToken(c echo.Context) error {
 }
 
 func (h *userHandler) UpdateInfo(c echo.Context) error {
-	var req user.Users
-	if err := c.Bind(&req); err != nil {
+	userIdStr := c.Param("user-id")
+	if userIdStr == "" {
+		h.logger.Error("user id is empty")
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "user id is required",
+		})
+	}
+
+	userId, err := strconv.ParseUint(userIdStr, 10, 64)
+	if err != nil {
+		h.logger.Error("user id is invalid")
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "user id is invalid",
+		})
+	}
+
+	var req user.UpdateInfoRequest
+	if err = c.Bind(&req); err != nil {
 		h.logger.Error(err)
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
 			"message": "request body is invalid",
@@ -185,7 +202,7 @@ func (h *userHandler) UpdateInfo(c echo.Context) error {
 	}
 
 	validate := validator.New()
-	err := validate.Struct(&req)
+	err = validate.Struct(&req)
 	if err != nil {
 		h.logger.Error(err)
 		return c.JSON(http.StatusBadRequest, echo.Map{
@@ -193,13 +210,20 @@ func (h *userHandler) UpdateInfo(c echo.Context) error {
 		})
 	}
 
-	err = h.userService.UpdateInfo(req)
+	newReq := user.Users{
+		Firstname: req.Firstname,
+		Lastname:  req.Lastname,
+		Email:     req.Email,
+	}
+	err = h.userService.UpdateInfo(uint(userId), newReq)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"message": err,
 		})
 	}
-	return nil
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": fmt.Sprintf("update user info for user id: %d successfully", userId),
+	})
 }
 
 func (h *userHandler) UpdatePassword(c echo.Context) error {
@@ -216,7 +240,7 @@ func (h *userHandler) UpdatePassword(c echo.Context) error {
 	if err != nil {
 		h.logger.Error(err)
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"message": err,
+			"message": errors.New("request body is invalid").Error(),
 		})
 	}
 
@@ -226,7 +250,9 @@ func (h *userHandler) UpdatePassword(c echo.Context) error {
 			"message": err,
 		})
 	}
-	return nil
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": fmt.Sprintf("update password for user id: %d successfully", req.ID),
+	})
 }
 
 func (h *userHandler) DeleteUser(c echo.Context) error {
@@ -252,5 +278,7 @@ func (h *userHandler) DeleteUser(c echo.Context) error {
 			"error": err,
 		})
 	}
-	return nil
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": fmt.Sprintf("delete user for user id: %d successfully", userId),
+	})
 }
