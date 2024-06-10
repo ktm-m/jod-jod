@@ -38,7 +38,6 @@ func NewTransactionRepository(db *gorm.DB, logger echo.Logger, redisClient *redi
 
 func (r *transactionRepository) GetAllTxn(filter entities.GetAllTxnFilter, pagination entities.Pagination) ([]entities.GetAllResponse, error) {
 	var res []entities.GetAllResponse
-	var err error
 	key := fmt.Sprintf("get-all-txn")
 	txnCache, err := r.redisClient.Get(context.Background(), key).Result()
 	if err == nil && txnCache != "" {
@@ -49,22 +48,8 @@ func (r *transactionRepository) GetAllTxn(filter entities.GetAllTxnFilter, pagin
 	}
 
 	query := r.db.Model(&entities.Transaction{})
-	//if filter.Date != nil {
-	//	query = query.Where("date = ?", filter.Date)
-	//}
-	//
-	//if filter.Category != "" {
-	//	query = query.Where("category = ?", filter.Category)
-	//}
-	//
-	//if filter.TxnType != "" {
-	//	query = query.Where("transaction_type = ?", filter.TxnType)
-	//}
-
-	//offset := (pagination.PageItem - 1) * pagination.Page
-	//query = query.Offset(offset).Limit(pagination.Page)
-
-	err = query.Find(&res).Error
+	offset := (pagination.Page - 1) * pagination.PageItem
+	err = query.Find(&res).Offset(offset).Limit(pagination.PageItem).Error
 	if err != nil {
 		r.logger.Error(err)
 		return nil, err

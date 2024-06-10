@@ -46,10 +46,9 @@ func (r *userRepository) GetUsers(pagination entities.Pagination) ([]entities.Ge
 		}
 	}
 
-	//offset := (pagination.PageItem - 1) * pagination.Page
-	//query := r.db.Model(&entities.Users{}).Offset(offset).Limit(pagination.PageItem)
+	offset := (pagination.Page - 1) * pagination.PageItem
 	query := r.db.Model(&entities.Users{})
-	err = query.Find(&res).Error
+	err = query.Find(&res).Offset(offset).Limit(pagination.PageItem).Error
 	if err != nil {
 		r.logger.Error(err)
 		return nil, err
