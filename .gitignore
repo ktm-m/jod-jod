@@ -5,6 +5,5 @@
 config.yaml
 coverage.txt
 **/.build
-**/go.mod
 **/go.sum
 data
