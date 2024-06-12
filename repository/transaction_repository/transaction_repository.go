@@ -48,6 +48,13 @@ func (r *transactionRepository) GetAllTxn(filter entities.GetAllTxnFilter, pagin
 	}
 
 	query := r.db.Model(&entities.Transaction{})
+	if filter.Category != "" {
+		query = query.Where("category = ?", filter.Category)
+	}
+	if filter.TxnType != "" {
+		query = query.Where("transaction_type = ?", filter.TxnType)
+	}
+
 	offset := (pagination.Page - 1) * pagination.PageItem
 	err = query.Find(&res).Offset(offset).Limit(pagination.PageItem).Error
 	if err != nil {
@@ -239,7 +246,7 @@ func (r *transactionRepository) UpdateTxn(txnId uint, req entities.Transaction) 
 	keys = append(keys, fmt.Sprintf("get-by-txn-type:%v", req.SpenderId))
 
 	for _, key := range keys {
-		err := r.redisClient.Del(context.Background(), key).Err()
+		err = r.redisClient.Del(context.Background(), key).Err()
 		if err != nil {
 			tx.Rollback()
 			r.logger.Error(err)

@@ -233,8 +233,6 @@ func (h *transactionHandler) Delete(c echo.Context) error {
 		h.logger.Error("txn-id is invalid")
 		return c.JSON(http.StatusBadRequest, echo.Map{"message": "txn-id is invalid"})
 	}
-	fmt.Println(spenderId)
-	fmt.Println(txnId)
 	err = h.transactionService.Delete(uint(spenderId), uint(txnId))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"message": err})
