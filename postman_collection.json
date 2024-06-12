@@ -104,7 +104,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgwMTMwMzYsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjEifQ.wVwpBDag8pY4FOv18jiJJhioVIO561un7qjIzqAEPCA",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTgxNTk1NTIsImlzcyI6ImpvZC1qb2Qgdi4wLjEuMCIsInN1YiI6ImFjY2VzcyB0b2tlbiIsIlVzZXJJRCI6IjEifQ.p8HKkxOKnXuICx6TBNmJh9UzCAV0OMLyZ5liquT2Cis",
 									"type": "string"
 								}
 							]
@@ -121,7 +121,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{local:8080}}/v1/transactions/all",
+							"raw": "{{local:8080}}/v1/transactions/all?category=food&txn-type=expense",
 							"host": [
 								"{{local:8080}}"
 							],
@@ -129,6 +129,31 @@
 								"v1",
 								"transactions",
 								"all"
+							],
+							"query": [
+								{
+									"key": "page-item",
+									"value": "10",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "category",
+									"value": "food"
+								},
+								{
+									"key": "txn-type",
+									"value": "expense"
+								},
+								{
+									"key": "date",
+									"value": null,
+									"disabled": true
+								}
 							]
 						}
 					},
