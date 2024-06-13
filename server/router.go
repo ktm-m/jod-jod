@@ -62,7 +62,7 @@ func (s *server) transactionRouter() {
 	router.GET("/period/:spender-id", transactionHandler.GetByPeriod, userMiddleware.ValidateToken, transactionMiddleware.SetGetByTxnTypeRequest, transactionMiddleware.SetPeriodFilter)
 	router.GET("/all", transactionHandler.GetAllTxn, userMiddleware.ValidateToken, transactionMiddleware.SetGetAllTxnFilter, transactionMiddleware.SetTxnPagination)
 	router.POST("/save/manual", transactionHandler.SaveByManual, userMiddleware.ValidateToken)
-	router.POST("/save/slip", transactionHandler.SaveFromSlip)
+	router.POST("/save/slip", transactionHandler.SaveFromSlip, userMiddleware.ValidateToken)
 	router.PUT("/update/:txn-id", transactionHandler.Update, userMiddleware.ValidateToken)
 	router.DELETE("/delete/:spender-id/:txn-id", transactionHandler.Delete, userMiddleware.ValidateToken)
 }
