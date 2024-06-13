@@ -30,10 +30,19 @@ type (
 		Secret string `mapstructure:"secret" validate:"required"`
 	}
 
+	AWS struct {
+		Region          string `mapstructure:"region" validate:"required"`
+		Bucket          string `mapstructure:"bucket" validate:"required"`
+		BucketSlipPath  string `mapstructure:"bucket_slip_path" validate:"required"`
+		AccessKeyID     string `mapstructure:"access_key_id" validate:"required"`
+		SecretAccessKey string `mapstructure:"secret_access_key" validate:"required"`
+	}
+
 	Config struct {
 		Database *Database `mapstructure:"database" validate:"required"`
 		Server   *Server   `mapstructure:"server" validate:"required"`
 		Auth     *Auth     `mapstructure:"auth" validate:"required"`
+		AWS      *AWS      `mapstructure:"aws" validate:"required"`
 	}
 )
 

@@ -2,16 +2,26 @@ package transaction
 
 import (
 	"errors"
+	"fmt"
+	"github.com/Montheankul-K/jod-jod/config"
 	"github.com/Montheankul-K/jod-jod/domains/entities"
 	"github.com/Montheankul-K/jod-jod/repository/transaction_repository"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/textract"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"mime/multipart"
+	"strconv"
 	"strings"
 	"time"
 )
 
 type ITransactionService interface {
 	SaveByManual(req Transaction) (uint, error)
+	SaveFromSlip(spenderId uint, file *multipart.FileHeader) (uint, error)
 	GetDetails(req GetByTxnTypeRequest) ([]GetAllByTxnTypeResponse, error)
 	GetSummary(req GetByTxnTypeRequest) (*GetSummaryResponse, error)
 	GetBalance(spenderId uint) (*GetBalanceResponse, error)
@@ -23,12 +33,14 @@ type ITransactionService interface {
 }
 
 type transactionService struct {
+	cfg                   *config.Config
 	transactionRepository transaction_repository.ITransactionRepository
 	logger                echo.Logger
 }
 
-func NewTransactionService(transactionRepository transaction_repository.ITransactionRepository, logger echo.Logger) ITransactionService {
+func NewTransactionService(cfg *config.Config, transactionRepository transaction_repository.ITransactionRepository, logger echo.Logger) ITransactionService {
 	return &transactionService{
+		cfg:                   cfg,
 		transactionRepository: transactionRepository,
 		logger:                logger,
 	}
@@ -50,6 +62,130 @@ func (s *transactionService) SaveByManual(req Transaction) (uint, error) {
 	}
 	s.logger.Infof("saved transaction with ID: %d success", result)
 	return result, nil
+}
+
+func (s *transactionService) SaveFromSlip(spenderId uint, file *multipart.FileHeader) (uint, error) {
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String(s.cfg.AWS.Region),
+		Credentials: credentials.NewStaticCredentials(s.cfg.AWS.AccessKeyID, s.cfg.AWS.SecretAccessKey, ""),
+	})
+	if err != nil {
+		s.logger.Error(err)
+		return 0, errors.New("failed to create aws session")
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		s.logger.Error(err)
+		return 0, errors.New("failed to open silp file")
+	}
+	defer src.Close()
+
+	s3Service := s3.New(sess)
+	filename := file.Filename
+	s3Path := s.cfg.AWS.BucketSlipPath
+	objectKey := fmt.Sprintf("%s/%d_%s_%s", s3Path, spenderId, time.Now().Format("20060102150405"), filename)
+	input := &s3.PutObjectInput{
+		Bucket: aws.String(s.cfg.AWS.Bucket),
+		Key:    aws.String(objectKey),
+		Body:   src,
+	}
+
+	_, err = s3Service.PutObject(input)
+	if err != nil {
+		s.logger.Error(err)
+		return 0, errors.New("failed to upload silp file to S3")
+	}
+	s.logger.Infof("uplaod slip image: %s to S3 success", objectKey)
+
+	extractTextResult, err := s.extractTextFromSlip(objectKey)
+	if err != nil {
+		s.logger.Error(err)
+		return 0, errors.New("failed to extract text from slip image")
+	}
+
+	txn := entities.Transaction{
+		Date:            time.Now(),
+		Amount:          extractTextResult.Amount,
+		Category:        extractTextResult.Category,
+		TransactionType: "expense",
+		ImageUrl:        objectKey,
+		SpenderId:       int(spenderId),
+	}
+
+	result, err := s.transactionRepository.SaveTxn(txn)
+	if err != nil {
+		s.logger.Error(err)
+		return 0, errors.New("failed to save transaction")
+	}
+	return result, nil
+}
+
+func (s *transactionService) extractTextFromSlip(objectKey string) (*TextractResult, error) {
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String(s.cfg.AWS.Region),
+		Credentials: credentials.NewStaticCredentials(s.cfg.AWS.AccessKeyID, s.cfg.AWS.SecretAccessKey, ""),
+	})
+	if err != nil {
+		s.logger.Error(err)
+		return nil, errors.New("failed to create aws session")
+	}
+
+	textractService := textract.New(sess)
+	input := &textract.DetectDocumentTextInput{
+		Document: &textract.Document{
+			S3Object: &textract.S3Object{
+				Bucket: aws.String(s.cfg.AWS.Bucket),
+				Name:   aws.String(objectKey),
+			},
+		},
+	}
+
+	result, err := textractService.DetectDocumentText(input)
+	if err != nil {
+		s.logger.Error(err)
+		return nil, errors.New("failed to detect document text")
+	}
+
+	var lines []string
+	for _, block := range result.Blocks {
+		if *block.BlockType == "LINE" {
+			text := *block.Text
+			replaceText := s.FixOCRExtractText(text)
+			lines = append(lines, replaceText)
+		}
+	}
+
+	var textractResult TextractResult
+	if len(lines) == 13 {
+		parts := strings.Split(lines[9], " ")
+		amount, _ := strconv.ParseFloat(parts[0], 64)
+		textractResult = TextractResult{
+			Category: "transfer",
+			Amount:   amount,
+		}
+	} else {
+		parts := strings.Split(lines[11], " ")
+		amount, _ := strconv.ParseFloat(parts[0], 64)
+		textractResult = TextractResult{
+			Category: "bill payment",
+			Amount:   amount,
+		}
+	}
+	s.logger.Info("extract text from slip success")
+	return &textractResult, nil
+}
+
+func (s *transactionService) FixOCRExtractText(text string) string {
+	replacements := map[string]string{
+		"unn": "bath",
+	}
+	for keyword, value := range replacements {
+		if strings.Contains(text, keyword) {
+			text = strings.Replace(text, keyword, value, -1)
+		}
+	}
+	return text
 }
 
 func (s *transactionService) GetDetails(req GetByTxnTypeRequest) ([]GetAllByTxnTypeResponse, error) {

@@ -52,7 +52,7 @@ func (s *server) transactionRouter() {
 	transactionMiddleware := transaction_middleware.NewTransactionMiddleware(s.app.Logger)
 
 	transactionRepository := transaction_repository.NewTransactionRepository(s.db.Connect(), s.app.Logger, redisClient)
-	transactionService := transaction.NewTransactionService(transactionRepository, s.app.Logger)
+	transactionService := transaction.NewTransactionService(s.cfg, transactionRepository, s.app.Logger)
 	transactionHandler := transaction_handler.NewTransactionHandler(transactionService, s.app.Logger)
 
 	router.GET("/detail/:spender-id", transactionHandler.GetDetails, userMiddleware.ValidateToken, transactionMiddleware.SetGetByTxnTypeRequest)
@@ -62,6 +62,7 @@ func (s *server) transactionRouter() {
 	router.GET("/period/:spender-id", transactionHandler.GetByPeriod, userMiddleware.ValidateToken, transactionMiddleware.SetGetByTxnTypeRequest, transactionMiddleware.SetPeriodFilter)
 	router.GET("/all", transactionHandler.GetAllTxn, userMiddleware.ValidateToken, transactionMiddleware.SetGetAllTxnFilter, transactionMiddleware.SetTxnPagination)
 	router.POST("/save/manual", transactionHandler.SaveByManual, userMiddleware.ValidateToken)
+	router.POST("/save/slip", transactionHandler.SaveFromSlip)
 	router.PUT("/update/:txn-id", transactionHandler.Update, userMiddleware.ValidateToken)
 	router.DELETE("/delete/:spender-id/:txn-id", transactionHandler.Delete, userMiddleware.ValidateToken)
 }

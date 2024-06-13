@@ -78,3 +78,8 @@ type GetByCategoryResponse struct {
 	Amount   float64   `gorm:"column: amount" json:"amount"`
 	ImageUrl string    `gorm:"column: image_url" json:"image_url"`
 }
+
+type TextractResult struct {
+	Category string
+	Amount   float64
+}

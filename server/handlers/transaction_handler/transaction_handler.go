@@ -13,6 +13,7 @@ import (
 
 type ITransactionHandler interface {
 	SaveByManual(c echo.Context) error
+	SaveFromSlip(c echo.Context) error
 	GetDetails(c echo.Context) error
 	GetSummary(c echo.Context) error
 	GetBalance(c echo.Context) error
@@ -56,6 +57,40 @@ func (h *transactionHandler) SaveByManual(c echo.Context) error {
 	result, err := h.transactionService.SaveByManual(req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"message": err})
+	}
+	return c.JSON(http.StatusCreated, echo.Map{"transaction_id": result})
+}
+
+func (h *transactionHandler) SaveFromSlip(c echo.Context) error {
+	spenderIdStr := c.FormValue("spender_id")
+	if spenderIdStr == "" {
+		h.logger.Error("spender_id is empty")
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "spender_id is required",
+		})
+	}
+
+	slipImage, err := c.FormFile("slip")
+	if err != nil {
+		h.logger.Error("slip image is empty")
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "slip image is required",
+		})
+	}
+
+	spenderId, err := strconv.ParseUint(spenderIdStr, 10, 64)
+	if err != nil {
+		h.logger.Error(err)
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"message": "spender id is invalid",
+		})
+	}
+
+	result, err := h.transactionService.SaveFromSlip(uint(spenderId), slipImage)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"message": err,
+		})
 	}
 	return c.JSON(http.StatusCreated, echo.Map{"transaction_id": result})
 }
